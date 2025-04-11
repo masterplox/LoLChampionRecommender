@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoL Champion Recommender</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .hero-section {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+        }
+        .champion-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+        .champion-card:hover {
+            transform: translateY(-5px);
+        }
+        .query-input {
+            border-radius: 25px;
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+        }
+        .search-btn {
+            border-radius: 25px;
+            padding: 0.5rem 2rem;
+            font-weight: 600;
+        }
+        .example-query {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .example-query:hover {
+            background-color: #f0f0f0;
+        }
+        .loading-spinner {
+            display: none;
+        }
+        .difficulty-stars {
+            color: #ffc107;
+        }
+        .role-badge {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            margin-right: 0.5rem;
+        }
+        .role-tank { background-color: #6c757d; color: white; }
+        .role-fighter { background-color: #dc3545; color: white; }
+        .role-mage { background-color: #6610f2; color: white; }
+        .role-assassin { background-color: #212529; color: white; }
+        .role-marksman { background-color: #fd7e14; color: white; }
+        .role-support { background-color: #20c997; color: white; }
+        .game-phase {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .strengths-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .strengths-list li {
+            margin-bottom: 0.5rem;
+        }
+        .strength-icon {
+            margin-right: 0.5rem;
+            color: #28a745;
+        }
+        .tips-section {
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-section">
+        <div class="container">
+            <h1 class="display-4 mb-4">League of Legends Champion Recommender</h1>
+            <p class="lead">Describe what kind of champion you're looking for in natural language</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="input-group mb-4">
+                    <input type="text" id="queryInput" class="form-control query-input" 
+                           placeholder="Example: 'I want a tanky champion who can deal damage'">
+                    <button class="btn btn-primary search-btn" id="searchButton">
+                        <i class="fas fa-search me-2"></i>Find Champions
+                    </button>
+                </div>
+
+                <div class="mb-4">
+                    <h5 class="mb-3">Example Queries:</h5>
+                    <div class="list-group">
+                        <a href="#" class="list-group-item list-group-item-action example-query">
+                            I want a champion with high AP and burst damage
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action example-query">
+                            I need a tanky initiator for teamfights
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action example-query">
+                            I want a scaling hypercarry for late game
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action example-query">
+                            I need a support with good peel and healing
+                        </a>
+                    </div>
+                </div>
+
+                <div class="text-center loading-spinner" id="loadingSpinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+
+                <div id="resultsContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const queryInput = document.getElementById('queryInput');
+            const searchButton = document.getElementById('searchButton');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const exampleQueries = document.querySelectorAll('.example-query');
+
+            function searchChampions() {
+                const query = queryInput.value.trim();
+                if (!query) return;
+
+                loadingSpinner.style.display = 'block';
+                resultsContainer.innerHTML = '';
+
+                fetch('/recommend', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: query })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    loadingSpinner.style.display = 'none';
+                    
+                    if (data.error) {
+                        resultsContainer.innerHTML = `
+                            <div class="alert alert-danger" role="alert">
+                                ${data.error}
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    const recommendations = data.recommendations;
+                    let html = '<h3 class="mb-4">Recommended Champions</h3>';
+
+                    recommendations.forEach(champ => {
+                        const difficultyStars = '★'.repeat(champ.difficulty) + '☆'.repeat(3 - champ.difficulty);
+                        const positions = Array.isArray(champ.position) ? champ.position.join(', ') : champ.position;
+                        
+                        // Determine role badges
+                        const roles = champ.type.split(' / ');
+                        const roleBadges = roles.map(role => {
+                            const roleClass = role.toLowerCase().replace(/\s+/g, '-');
+                            return `<span class="role-badge role-${roleClass}">${role}</span>`;
+                        }).join('');
+
+                        // Determine game phase strength
+                        const gamePhase = champ.damage_score > 0.7 ? 'Late Game' : 
+                                       champ.mobility_score > 0.7 ? 'Early Game' : 
+                                       'Mid Game';
+                        
+                        html += `
+                            <div class="champion-card p-4 mb-4">
+                                <h4>${champ.champion} <small class="text-muted">${champ.title}</small></h4>
+                                <div class="mb-2">${roleBadges}</div>
+                                <p class="mb-2"><strong>Position:</strong> ${positions}</p>
+                                <p class="mb-2"><strong>Difficulty:</strong> <span class="difficulty-stars">${difficultyStars}</span></p>
+                                <p class="mb-2 game-phase"><strong>Game Phase:</strong> ${gamePhase}</p>
+                                
+                                <div class="strengths-section">
+                                    <h6 class="mb-2">Strengths:</h6>
+                                    <ul class="strengths-list">
+                                        ${champ.reasons.map(reason => `
+                                            <li><i class="fas fa-check-circle strength-icon"></i>${reason}</li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+
+                                <div class="tips-section">
+                                    <h6 class="mb-2">Tips:</h6>
+                                    <ul class="strengths-list">
+                                        ${getChampionTips(champ).map(tip => `
+                                            <li><i class="fas fa-lightbulb strength-icon"></i>${tip}</li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    resultsContainer.innerHTML = html;
+                })
+                .catch(error => {
+                    loadingSpinner.style.display = 'none';
+                    resultsContainer.innerHTML = `
+                        <div class="alert alert-danger" role="alert">
+                            An error occurred while fetching recommendations.
+                        </div>
+                    `;
+                    console.error('Error:', error);
+                });
+            }
+
+            searchButton.addEventListener('click', searchChampions);
+            queryInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchChampions();
+                }
+            });
+
+            exampleQueries.forEach(query => {
+                query.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    queryInput.value = this.textContent.trim();
+                    searchChampions();
+                });
+            });
+        });
+
+        function getChampionTips(champ) {
+            const tips = [];
+            
+            // Add role-specific tips
+            if (champ.type.includes('Mage')) {
+                tips.push('Focus on farming and scaling into the late game');
+                tips.push('Position carefully in teamfights to maximize damage output');
+                tips.push('Use your abilities to poke and zone enemies');
+            }
+            if (champ.type.includes('Tank')) {
+                tips.push('Initiate teamfights when your team is ready');
+                tips.push('Peel for your carries in teamfights');
+                tips.push('Build resistances based on enemy damage types');
+            }
+            if (champ.type.includes('Assassin')) {
+                tips.push('Look for opportunities to pick off isolated targets');
+                tips.push('Wait for key enemy cooldowns before engaging');
+                tips.push('Use your mobility to escape after getting a kill');
+            }
+            if (champ.type.includes('Support')) {
+                tips.push('Focus on vision control and map awareness');
+                tips.push('Protect your carries in teamfights');
+                tips.push('Coordinate with your team for engages and disengages');
+            }
+            if (champ.type.includes('Marksman')) {
+                tips.push('Focus on farming and positioning in teamfights');
+                tips.push('Stay with your team to avoid being caught out');
+                tips.push('Build according to enemy team composition');
+            }
+            if (champ.type.includes('Fighter')) {
+                tips.push('Look for opportunities to split push');
+                tips.push('Build a mix of damage and tankiness');
+                tips.push('Use your sustain to win extended trades');
+            }
+
+            // Add phase-specific tips
+            if (champ.damage_score > 0.7) {
+                tips.push('Focus on farming and scaling into the late game');
+            } else if (champ.mobility_score > 0.7) {
+                tips.push('Look for early game opportunities to snowball');
+            }
+
+            return tips;
+        }
+    </script>
+</body>
+</html> 
