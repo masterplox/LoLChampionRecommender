@@ -2,8 +2,8 @@
 
 A Flask-based web application that recommends League of Legends champions based on natural language descriptions. The application uses natural language processing and machine learning techniques to understand user preferences and suggest appropriate champions.
 
-Live Demo: [Your Render URL]
-Created by: [Your Name]
+Live Demo: https://lolchampionrecommender.onrender.com/
+Created by: Rashaan Morris
 
 ## Features
 
