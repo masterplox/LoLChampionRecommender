@@ -1,6 +1,9 @@
 # League of Legends Champion Recommender Web App
 
-A Flask-based web application that recommends League of Legends champions based on natural language descriptions.
+A Flask-based web application that recommends League of Legends champions based on natural language descriptions. The application uses natural language processing and machine learning techniques to understand user preferences and suggest appropriate champions.
+
+Live Demo: [Your Render URL]
+Created by: [Your Name]
 
 ## Features
 
@@ -9,6 +12,17 @@ A Flask-based web application that recommends League of Legends champions based 
 - Example queries for quick testing
 - Detailed champion information display
 - Visual difficulty rating with stars
+- Real-time champion recommendations based on user preferences
+- Intelligent processing of natural language queries
+- Advanced matching algorithm considering multiple champion attributes
+
+## Technologies Used
+
+- **Frontend**: HTML5, CSS3, JavaScript, Bootstrap 5
+- **Backend**: Python, Flask
+- **NLP & ML**: NLTK, scikit-learn
+- **Data Processing**: Pandas, NumPy
+- **Deployment**: Render
 
 ## Installation
 
@@ -52,3 +66,17 @@ A Flask-based web application that recommends League of Legends champions based 
 - Backend: Flask with Python
 - Natural Language Processing: NLTK
 - Data Processing: Pandas, NumPy 
+
+## Contact & Contribution
+
+- **Developer**: Rashaan Morris
+- **LinkedIn**: https://www.linkedin.com/in/rashaan-morris-25624595/
+- **GitHub**: https://github.com/masterplox
+
+## License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+## Acknowledgments
+
+- Champion data sourced from https://www.kaggle.com/datasets/laurenainsleyhaines/25-05-league-of-legends-champion-data-2025/data
